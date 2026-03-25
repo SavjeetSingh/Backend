@@ -1,0 +1,29 @@
+to design the calendar system, 
+we need to design database but first we need verify what the client needs in this
+
+----
+the calendar should be able to show time table for the user/teachers, meetings, any call which is scheduled
+TODO : design database on mongodb
+
+--- BACKEND TODO LIST ---
+
+Phase 1 - Setup:
+TODO : install dependencies - mongoose, dotenv, cors, bcryptjs, jsonwebtoken {done}
+TODO : create folder structure - routes/, models/, controllers/, middleware/ {done}
+TODO : configure Express server with cors, json parsing, dotenv {done}
+
+Phase 2 - Database:
+TODO : connect to MongoDB via Mongoose (config/db.js)
+TODO : design User model - name, email, password, role (user/teacher)
+TODO : design Event model - title, type (timetable/meeting/call), startTime, endTime, participants, createdBy
+
+Phase 3 - API Routes:
+TODO : build auth routes - POST /api/auth/register and POST /api/auth/login with JWT
+TODO : build JWT middleware to protect routes
+TODO : build event CRUD routes - POST, GET, PUT, DELETE /api/events
+TODO : add date range query route - GET /api/events?start=&end=
+TODO : add timetable route - fetch schedule for a specific user/teacher
+
+Phase 4 - Testing:
+TODO : test all endpoints with Postman or Thunder Client
+----
