@@ -1,0 +1,112 @@
+== MONGODB SCHEMA DESIGN ==
+
+---------------------------------------------------------------------------
+COLLECTION: users
+---------------------------------------------------------------------------
+{
+  _id:           ObjectId,
+  name:          String,
+  email:         String,       // unique index
+  passwordHash:  String,       // bcrypt
+  timezone:      String,       // e.g. "America/New_York" (default: "UTC")
+  createdAt:     Date,
+  updatedAt:     Date
+}
+
+Indexes:
+  - email (unique)
+
+---------------------------------------------------------------------------
+COLLECTION: calendars
+---------------------------------------------------------------------------
+{
+  _id:       ObjectId,
+  ownerId:   ObjectId,         // ref: users
+  name:      String,           // e.g. "Work", "Personal"
+  color:     String,           // hex "#RRGGBB"
+  isDefault: Boolean,
+  sharedWith: [
+    {
+      userId:     ObjectId,    // ref: users
+      permission: String       // "read" | "write"
+    }
+  ],
+  createdAt: Date
+}
+
+Indexes:
+  - ownerId
+
+---------------------------------------------------------------------------
+COLLECTION: events
+---------------------------------------------------------------------------
+{
+  _id:          ObjectId,
+  calendarId:   ObjectId,      // ref: calendars
+  creatorId:    ObjectId,      // ref: users
+  title:        String,
+  description:  String,        // optional
+  location:     String,        // optional
+  startTime:    Date,          // always stored in UTC
+  endTime:      Date,          // always stored in UTC
+  isAllDay:     Boolean,
+  status:       String,        // "confirmed" | "tentative" | "cancelled"
+
+  // Recurring events
+  recurrence: {                // null if not recurring
+    rule:    String,           // iCal RRULE e.g. "FREQ=WEEKLY;BYDAY=MO,WE"
+    endDate: Date              // optional, when series ends
+  },
+  parentEventId: ObjectId,     // ref: events — set only on recurring exceptions
+
+  attendees: [
+    {
+      userId:         ObjectId, // ref: users (null for external guests)
+      email:          String,   // used for external guests
+      responseStatus: String    // "pending" | "accepted" | "declined" | "tentative"
+    }
+  ],
+
+  reminders: [
+    {
+      userId:        ObjectId,  // ref: users
+      minutesBefore: Number,    // e.g. 10, 30, 60, 1440
+      method:        String     // "email" | "push"
+    }
+  ],
+
+  createdAt: Date,
+  updatedAt: Date
+}
+
+Indexes:
+  - calendarId
+  - creatorId
+  - startTime, endTime       (range queries for fetching events in a date window)
+  - attendees.userId
+
+---------------------------------------------------------------------------
+EMBEDDING vs REFERENCING DECISIONS
+---------------------------------------------------------------------------
+- attendees and reminders are EMBEDDED in events
+    -> They are always fetched together with the event
+    -> Bounded in size (a single event won't have thousands of attendees)
+
+- sharedWith is EMBEDDED in calendars
+    -> Small list, always needed when checking access
+
+- calendarId and creatorId REFERENCE their collections
+    -> User/calendar data is large and reused across many events
+
+---------------------------------------------------------------------------
+NOTES
+---------------------------------------------------------------------------
+1. Store all times in UTC. Use the user's `timezone` field only when
+   displaying times on the frontend.
+
+2. parentEventId is only set when a single occurrence of a recurring event
+   is modified (a "recurring exception"). The original series event keeps
+   its recurrence.rule intact.
+
+3. Use mongoose-paginate or manual skip/limit when querying events by
+   date range (startTime >= rangeStart AND endTime <= rangeEnd).
