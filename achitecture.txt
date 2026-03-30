@@ -27,3 +27,64 @@ TODO : add timetable route - fetch schedule for a specific user/teacher
 Phase 4 - Testing:
 TODO : test all endpoints with Postman or Thunder Client
 ----
+
+user:
+    _id: ObjectId,
+    namm: String
+    email: String
+    passwordHash:  String
+    timezone:  String
+    createdAt: date
+    updatedAt: date
+
+calendar: 
+    _id: ObjectId,
+    ownerId: ObjectId,
+    name: Stringm
+    color: String
+    isDefault: Boolean
+    sharedWith: [
+        {
+            userId: ObjectId
+            permission: String
+        }
+    ],
+    createdAt: date
+
+Indexes : ownerId
+
+events:
+    _id: ObjectId
+    calendarId: ObjectId
+    creatorId: ObjectId
+    title: String
+    description: String
+    location: String
+    starttime: date
+    endTime : date
+    isAllDay: Boolean
+    status: String
+
+    recurrence: {
+        rule: String
+        endDate: date
+    },
+    parentEventId: ObjectId
+
+    attendees: [
+        {
+            userId: ObjectId
+            email: String
+            responseStatus: String
+        }
+    ],
+
+    reminders: [
+        {
+            userId: ObjectId
+            minutesBefore: Number
+            method: String
+        }
+    ],
+    createdAt: date,
+    updatedAt: date
