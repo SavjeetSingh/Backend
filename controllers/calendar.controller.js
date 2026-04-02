@@ -18,9 +18,10 @@ export const getMyCalendars = async (req, res) => {
   res.success(calendars);
 };
 
-export const getSingleCalendar = async (req, res) => {
+export const getCalendar = async (req, res) => {
   const calendar = await Calendar.findById(req.params.id);
   if (!calendar) return res.error("calendar not found", 404);
+  res.success(calendar);
 };
 
 export const updateCalendar = async (req, res) => {
@@ -70,12 +71,12 @@ export const updateSharePermission = async (req, res) => {
 };
 
 export const removeShare = async (req, res) => {
-  const calendar = await Calendar.findOneAndDelete(
+  const calendar = await Calendar.findOneAndUpdate(
     { _id: req.params.id, ownerId: req.user.id },
     { $pull: { sharedWith: { userId: req.params.userId } } },
     { new: true },
   );
-  if (!calendar) res.error("calendar not found", 404);
+  if (!calendar) return res.error("calendar not found", 404);
   res.success(calendar);
 };
 

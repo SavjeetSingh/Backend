@@ -3,26 +3,22 @@ import dotenv from "dotenv";
 import cors from "cors";
 import mongoose from "mongoose";
 import authRoutes from "./routes/auth.routes.js";
-import { protect } from "./middleware/auth.middleware.js";
+import calendarRoutes from "./routes/calendar.routes.js";
+import eventRoutes from "./routes/event.routes.js";
+import { responseMiddleware } from "./middleware/response.middleware.js";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// enabling cors
-app.use(
-  cors({
-    origin: process.env.ALLOWED_ORIGIN,
-  }),
-);
-
+app.use(cors({ origin: process.env.ALLOWED_ORIGIN }));
 app.use(express.json());
-app.use("/auth", authRoutes);
+app.use(responseMiddleware);
 
-app.get("/protected", protect, (req, res) => {
-  res.json({ message: "You're in", userId: req.user.id });
-});
+app.use("/auth", authRoutes);
+app.use("/calendars", calendarRoutes);
+app.use("/events", eventRoutes);
 
 mongoose
   .connect(process.env.MONGO_URI)
